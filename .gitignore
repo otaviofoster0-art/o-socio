@@ -1,0 +1,7 @@
+# Chave da API: nunca vai para o GitHub
+.env
+.env.*
+!.env.exemplo
+
+node_modules/
+*.log

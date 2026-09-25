@@ -1,0 +1,11 @@
+{
+  "name": "o-socio-prototipo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs --abrir"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
+  }
+}
