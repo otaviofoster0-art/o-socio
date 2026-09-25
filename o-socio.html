@@ -1383,6 +1383,10 @@ Na reunião das 16h30, reforce as metas do 4º tri: só 58% da equipe diz entend
    ========================================================= */
 let MODE = "connecting";
 let sample = null;
+// Onde está o servidor da IA. Na prévia do GitHub Pages, aponta para o servidor hospedado.
+const API_BASE = /\.github\.io$/.test(location.hostname) ? "https://o-socio.onrender.com" : "";
+const lerCodigo = () => { try { return localStorage.getItem("socio-codigo") || ""; } catch { return ""; } };
+const cabecalhosIA = () => (lerCodigo() ? { "X-Codigo": lerCodigo() } : {});
 let turns = [];
 let busy = false;
 let ctl = null;
@@ -1398,8 +1402,8 @@ async function llm(msgs, { voz = false, rapido = false, system, onText, signal }
   if (MODE !== "server") throw { code: "not_granted", message: "IA indisponível" };
   let res;
   try {
-    res = await fetch("/api/chat", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+    res = await fetch(API_BASE + "/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json", ...cabecalhosIA() },
       body: JSON.stringify({ system, messages: msgs, voz, rapido }), signal
     });
   } catch (e) {
@@ -1408,6 +1412,7 @@ async function llm(msgs, { voz = false, rapido = false, system, onText, signal }
   if (!res.ok) {
     let err = {};
     try { err = await res.json(); } catch { /* sem corpo */ }
+    if (err.code === "codigo") setTimeout(pedirCodigo, 0);
     throw { code: err.code || "upstream_error", message: err.message || "HTTP " + res.status };
   }
   const reader = res.body.getReader();
@@ -1436,7 +1441,8 @@ const ERROS = {
   empty_completion: "A resposta veio vazia. Tente perguntar de outra forma.",
   prompt_too_large: "A conversa ficou longa demais. Recarregue a página para começar uma nova.",
   auth: "A chave da API no arquivo .env foi recusada. Confira a chave e reinicie o servidor.",
-  no_key: "O servidor local está sem chave. Configure o arquivo .env e reinicie."
+  no_key: "O servidor local está sem chave. Configure o arquivo .env e reinicie.",
+  codigo: "Digite o código da apresentação para usar a IA."
 };
 const BLOQUEIOS = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
 
@@ -1576,9 +1582,9 @@ function setBusy(b) {
 function setStatus() {
   const st = $("#ai-status");
   const map = {
-    connecting: ["", "Conectando à IA…"],
+    connecting: ["", PUBLICO ? "Conectando à IA… (na primeira vez pode levar até 1 minuto)" : "Conectando à IA…"],
     sample: ["live", "IA ativa · analisando os dados de todas as áreas"],
-    server: ["live", "IA ativa · versão local com voz e reunião"],
+    server: ["live", PUBLICO ? "IA ativa · com voz e reunião" : "IA ativa · versão local com voz e reunião"],
     nokey: ["demo", "Servidor sem chave · configure o arquivo .env"],
     demo: ["demo", PUBLICO ? "Prévia pública · respostas de demonstração" : "Modo demonstração · respostas prontas"]
   };
@@ -1644,6 +1650,11 @@ async function ask(q) {
   addMsg("user", esc(q));
   $("#ask").value = ""; autoGrow();
 
+  if (MODE === "connecting") {
+    addMsg("bot", `<p>Ainda estou conectando à IA (o servidor pode levar até 1 minuto para acordar). Envie de novo em instantes.</p>`);
+    $("#ask").value = q;
+    return;
+  }
   if (MODE !== "sample" && MODE !== "server") {
     const r = RESERVA[q];
     if (r) finishBot(addMsg("bot", ""), r, "Resposta de demonstração. " + motivoDemo());
@@ -3758,7 +3769,7 @@ let S = carregar();
 if (PUBLICO) {
   const nota = document.createElement("div");
   nota.className = "public-note";
-  nota.textContent = "Prévia pública do O Sócio · Clínica Sorrir+ e todos os dados são fictícios · as respostas da IA são de demonstração.";
+  nota.textContent = "Protótipo do O Sócio · a Clínica Sorrir+ e todos os dados são fictícios.";
   $("#v-home").insertBefore(nota, $("#reminder"));
 }
 renderHome();
@@ -3780,15 +3791,47 @@ checarLembretes();
   if (window.claude && window.claude.use) {
     try { sample = await window.claude.use("sample"); } catch { sample = null; }
     MODE = sample ? "sample" : "demo";
-  } else if (PUBLICO) {
-    MODE = "demo";
   } else {
+    // O servidor gratuito pode estar "dormindo": espera até 90 s ele acordar.
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 90000);
     try {
-      const r = await fetch("/api/status", { cache: "no-store" });
+      const r = await fetch(API_BASE + "/api/status", { cache: "no-store", headers: cabecalhosIA(), signal: ctl.signal });
       const j = await r.json();
-      MODE = j.key ? "server" : "nokey";
+      MODE = j.key ? "server" : PUBLICO ? "demo" : "nokey";
+      if (MODE === "server" && j.codigo && !j.codigoValido) setTimeout(pedirCodigo, 400);
     } catch { MODE = "demo"; }
+    clearTimeout(t);
   }
   setStatus();
 })();
+
+/* Código da apresentação (quando o servidor pede) */
+function pedirCodigo() {
+  if (!$("#modal").hidden && $("#cod-form")) return;
+  openModal("Código da apresentação", `
+    <p style="margin:0">Para usar a IA ao vivo, digite o código que aparece na apresentação.</p>
+    <form id="cod-form" class="row">
+      <input class="inp grow" id="cod-inp" autocomplete="off" autocapitalize="characters" placeholder="Código" aria-label="Código da apresentação" required>
+      <button type="submit" class="btn btn-gold">Ativar IA</button>
+    </form>
+    <p class="note" id="cod-msg" style="margin:0"></p>
+    <button type="button" class="link" id="cod-demo" style="align-self:flex-start">Continuar sem a IA ao vivo</button>`);
+  setTimeout(() => $("#cod-inp") && $("#cod-inp").focus(), 50);
+  $("#cod-demo").onclick = () => { MODE = "demo"; setStatus(); closeModal(); };
+  $("#cod-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const cod = $("#cod-inp").value.trim();
+    $("#cod-msg").textContent = "Verificando…";
+    try {
+      const j = await fetch(API_BASE + "/api/status", { cache: "no-store", headers: { "X-Codigo": cod } }).then((r) => r.json());
+      if (!j.codigoValido) { $("#cod-msg").textContent = "Código incorreto. Confira no slide e tente de novo."; return; }
+      try { localStorage.setItem("socio-codigo", cod); } catch { /* sem armazenamento */ }
+      MODE = "server";
+      setStatus();
+      closeModal();
+      toast("IA ao vivo ativada.");
+    } catch { $("#cod-msg").textContent = "Não consegui falar com o servidor. Tente de novo em instantes."; }
+  };
+}
 </script>

@@ -22,9 +22,22 @@ Protótipo de uma IA de gestão que funciona como sócio virtual e braço direit
 
 ## Três jeitos de ver
 
-1. **Prévia pública (GitHub Pages):** abre em qualquer celular. As respostas da IA são de demonstração.
+1. **Prévia (GitHub Pages):** abre em qualquer celular. Com o servidor hospedado no ar, a IA responde ao vivo; sem ele, as respostas são de demonstração.
 2. **No Claude:** a IA responde ao vivo pela conta de quem abre (link privado do time).
 3. **Versão local, completa:** IA ao vivo, microfone e reunião por voz.
+
+### IA ao vivo para todos (Render)
+
+[![Deploy no Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/otaviofoster0-art/o-socio)
+
+O `render.yaml` cria o servidor gratuito `o-socio.onrender.com`. No Render, preencha:
+
+| Variável | O que colocar |
+|---|---|
+| `ANTHROPIC_API_KEY` | A chave da API (fica só no servidor) |
+| `CODIGO_ACESSO` | Um código curto para a plateia, mostrado no slide (opcional) |
+
+Proteções: limite de 60 pedidos a cada 10 minutos por pessoa e 1.500 por hora no total; só a prévia do GitHub Pages pode chamar a API de outro endereço. O plano gratuito "dorme" depois de 15 minutos sem uso: abra o site 2 minutos antes de apresentar.
 
 ### Rodar a versão local
 

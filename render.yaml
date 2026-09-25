@@ -1,0 +1,21 @@
+# Hospedagem do O Sócio no Render (plano gratuito).
+# No Render: New > Blueprint > escolha este repositório.
+# Ele vai pedir os valores das variáveis marcadas com sync: false.
+services:
+  - type: web
+    name: o-socio
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: npm install
+    startCommand: node server.mjs
+    healthCheckPath: /api/status
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOSPEDADO
+        value: "1"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CODIGO_ACESSO
+        sync: false
