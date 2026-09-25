@@ -1,6 +1,6 @@
-# O Sócio · seu sócio virtual
+# O Sócio · seu aliado virtual
 
-Protótipo de uma IA de gestão que funciona como sócio virtual e braço direito do empresário. Ela conecta os dados de todas as áreas da empresa (financeiro, comercial, marketing, operações, pessoas, cultura, fiscal e estratégia), recomenda decisões com base nos números e facilita a comunicação com os líderes, enquanto o dono cuida do reforço e da condução humana da equipe.
+Protótipo de uma IA de gestão que funciona como aliado virtual e braço direito do empresário. Ela conecta os dados de todas as áreas da empresa (financeiro, comercial, marketing, operações, pessoas, cultura, fiscal e estratégia), recomenda decisões com base nos números e facilita a comunicação com os líderes, enquanto o dono cuida do reforço e da condução humana da equipe.
 
 **Prévia no celular:** o link do GitHub Pages está na descrição deste repositório.
 
