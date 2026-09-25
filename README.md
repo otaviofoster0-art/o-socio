@@ -58,5 +58,6 @@ A chave fica só no arquivo `.env`, que está no `.gitignore` e nunca vai para o
 | `pagina.mjs` | Monta o HTML completo (usado pelo servidor e pela prévia) |
 | `gerar-site.mjs` | Gera a prévia pública em `docs/index.html` |
 | `docs/` | Site publicado pelo GitHub Pages |
+| `assets/` | Logo oficial e o símbolo recortado usado no app, nos PDFs e no ícone |
 
 Depois de editar `o-socio.html`, rode `node gerar-site.mjs` para atualizar a prévia.
