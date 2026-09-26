@@ -354,7 +354,7 @@
 
   .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
   .tag svg { width: 12px; height: 12px; }
-  .tag.wa { background: rgba(37,211,102,.12); color: #4BDB84; }
+  .tag.tag-wa { background: rgba(37,211,102,.12); color: #4BDB84; }
   .tag.gold { background: rgba(212,175,124,.14); color: var(--gold); }
   .tag.ai { background: rgba(139,92,246,.18); color: var(--purple-soft); }
 
@@ -2384,7 +2384,7 @@ function renderAgenda() {
         <button type="button" class="btn btn-gold" data-act="novo-evento"><svg aria-hidden="true"><use href="#i-plus"/></svg>Novo compromisso</button>
       </div>
     </div>
-    <div class="legend-types">${Object.values(TIPOS).map((t) => `<span><i style="background:${t.cor}"></i>${t.nome}</span>`).join("")}<span><span class="tag wa"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>marcado pelo WhatsApp</span></span></div>
+    <div class="legend-types">${Object.values(TIPOS).map((t) => `<span><i style="background:${t.cor}"></i>${t.nome}</span>`).join("")}<span><span class="tag tag-wa"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>marcado pelo WhatsApp</span></span></div>
     <div class="day-strip" role="group" aria-label="Escolha o dia">${Array.from({ length: 7 }, (_, i) => {
       const dia = somaDias(ini, i);
       return `<button type="button" data-act="dia" data-id="${dia}" class="${dia === T ? "today" : ""}" aria-pressed="${dia === sel}">${DIAS_SEM[i]}<b>${new Date(dia + "T12:00:00").getDate()}</b>${eventosDoDia(dia).length ? "<i></i>" : ""}</button>`;
@@ -2411,7 +2411,7 @@ function abrirEvento(id) {
   if (!ev) return;
   const r = ev.resumoId && getReuniao(ev.resumoId);
   const passado = ev.data <= hojeISO();
-  const origem = { whatsapp: `<span class="tag wa"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>WhatsApp</span>`, email: `<span class="tag">E-mail</span>`, sistema: `<span class="tag gold">Sistema da clínica</span>`, socio: `<span class="tag ai">O Sócio</span>`, agenda: `<span class="tag">Agenda</span>` }[ev.origem] || "";
+  const origem = { whatsapp: `<span class="tag tag-wa"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>WhatsApp</span>`, email: `<span class="tag">E-mail</span>`, sistema: `<span class="tag gold">Sistema da clínica</span>`, socio: `<span class="tag ai">O Sócio</span>`, agenda: `<span class="tag">Agenda</span>` }[ev.origem] || "";
   openModal(ev.titulo, `
     <dl class="kv">
       <dt>Quando</dt><dd>${esc(dataLonga(ev.data))}, ${ev.hora} (${durTxt(ev.dur)})</dd>
@@ -3770,7 +3770,8 @@ if (PUBLICO) {
   $("#v-home").insertBefore(nota, $("#reminder"));
 }
 renderHome();
-go("home");
+// Link direto para uma tela: ...#agenda, #chat, #relatorios etc.
+go(VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "home");
 setStatus();
 updateMailBadge();
 (() => {
